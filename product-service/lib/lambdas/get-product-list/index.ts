@@ -6,7 +6,6 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   try {
     return createResponse(200, products);
   } catch (error) {
-    console.log("Event: ", event);
     return createResponse(500, { message: 'Internal server error' });
   };
 }
