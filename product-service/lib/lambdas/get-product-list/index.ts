@@ -1,21 +1,12 @@
-import { APIGatewayProxyResult, APIGatewayProxyHandler, APIGatewayProxyEvent } from 'aws-lambda';
-import { products } from './products';
+import createResponse from '../../../utils/create-reponse';
+import { products } from '../../../mock/products';
+import type { APIGatewayProxyResult, APIGatewayProxyHandler, APIGatewayProxyEvent } from 'aws-lambda';
 
-export const handler:APIGatewayProxyHandler  = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET',
-      },
-      body: JSON.stringify(products),
-    };
+    return createResponse(200, products);
   } catch (error) {
     console.log("Event: ", event);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: 'Internal server error' }),
-    };
-  }
-};
+    return createResponse(500, { message: 'Internal server error' });
+  };
+}
