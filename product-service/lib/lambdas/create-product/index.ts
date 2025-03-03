@@ -15,7 +15,7 @@ export const handler = async (event: APIGatewayEvent): Promise<APIGatewayProxyRe
         const { title, description, price, count } = JSON.parse(event.body || '{}');
         const id = uuidv4();
 
-        if (!title || !description || price === undefined || count === undefined) {
+        if (!title.trim() || !description.trim() || price === undefined || price <= 0 || count === undefined || count < 0) {
             return createResponse(400, { message: "Invalid request body" });
         }
 
