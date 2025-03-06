@@ -29,7 +29,7 @@ export class ImportServiceStack extends cdk.Stack {
         externalModules: ['aws-sdk'],
       },
       environment: {
-        BUCKET_NAME: importBucket.bucketName
+        IMPORT_SERVICE_BUCKET_NAME: importBucket.bucketName
       }
     });
 
@@ -43,18 +43,56 @@ export class ImportServiceStack extends cdk.Stack {
         externalModules: ['aws-sdk'],
       },
       environment: {
-        BUCKET_NAME: importBucket.bucketName
+        IMPORT_SERVICE_BUCKET_NAME: importBucket.bucketName
       }
     });
 
     importProductsFileLambda.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['s3:PutObject'],
-      resources: [`${importBucket.bucketArn}/uploaded/*`],
+      actions: [
+        's3:PutObject',
+        's3:GetObject',
+        's3:ListBucket'
+      ],
+      resources: [
+        `${importBucket.bucketArn}`,
+        `${importBucket.bucketArn}/*`,
+        `${importBucket.bucketArn}/uploaded/*`
+      ],
     }));
 
     importFileParser.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['s3:GetObject'],
-      resources: [`${importBucket.bucketArn}/uploaded/*`],
+      actions: [
+        's3:GetObject',
+        's3:PutObject',
+        's3:DeleteObject',
+        's3:ListBucket'
+      ],
+      resources: [
+        `${importBucket.bucketArn}`,
+        `${importBucket.bucketArn}/*`,
+        `${importBucket.bucketArn}/uploaded/*`,
+        `${importBucket.bucketArn}/parsed/*`
+      ],
+    }));
+
+    importFileParser.addPermission('S3Permission', {
+      principal: new iam.ServicePrincipal('s3.amazonaws.com'),
+      action: 'lambda:InvokeFunction',
+      sourceArn: importBucket.bucketArn,
+    });
+
+    const notification = new s3n.LambdaDestination(importFileParser);
+
+    importBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED_PUT,
+      notification,
+      { prefix: 'uploaded/' }
+    );
+
+    importBucket.addToResourcePolicy(new iam.PolicyStatement({
+      actions: ['s3:PutObject'],
+      principals: [new iam.ArnPrincipal(importProductsFileLambda.role!.roleArn)],
+      resources: [`${importBucket.bucketArn}/uploaded/*`]
     }));
 
     const api = new apigateway.RestApi(this, 'ImportServiceApi', {
@@ -67,11 +105,5 @@ export class ImportServiceStack extends cdk.Stack {
 
     const importProductsFile = api.root.addResource('import');
     importProductsFile.addMethod('GET', new apigateway.LambdaIntegration(importProductsFileLambda));
-
-    importBucket.addEventNotification(
-      s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(importFileParser),
-      { prefix: 'uploaded/' }
-    );
   }
 }

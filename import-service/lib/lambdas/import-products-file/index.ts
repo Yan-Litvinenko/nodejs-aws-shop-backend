@@ -23,6 +23,10 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
         return createResponse(200, signedUrl);
     } catch (error) {
-        return createResponse(500, { message: 'Internal server error' });
+        console.error('Error details:', error);
+        return createResponse(500, {
+            message: 'Internal server error',
+            error: error instanceof Error ? error.message : String(error)
+        });
     }
 }

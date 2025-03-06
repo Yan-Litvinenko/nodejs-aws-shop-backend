@@ -7,8 +7,9 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
+    "test": "jest --coverage",
+    "cdk": "cdk",
+    "deploy": "cdk deploy"
   },
   "devDependencies": {
     "@types/aws-sdk": "^0.0.42",
@@ -26,6 +27,8 @@
     "@types/aws-lambda": "^8.10.147",
     "aws-cdk-lib": "2.178.1",
     "constructs": "^10.0.0",
-    "csv-parser": "^3.2.0"
+    "csv-parser": "^3.2.0",
+    "dotenv": "^16.4.7",
+    "esbuild": "^0.25.0"
   }
 }
